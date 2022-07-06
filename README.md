@@ -1,19 +1,25 @@
 movie2gif
 =========
 
-Usage: movie2gif [options] clone|convert|edit|file|help|path
-
-Convert video file into GIF or get info about the file.
-
 ```
-clone     Clone script to current or specified directory.
-convert   Convert movie file into animated GIF file.
-edit      Edit script with $EDITOR (vim).
-file      Show info about image or movie file.
-help      Show this help screen.
-path      Get path of script file being run.
+Usage: movie2gif [options] input [output]
 
--n        Dry run.
--v        Verbose output.
+Convert a video file into an animated GIF file.
+
+Available options:
+
+	-a   Time scale. Less than 1 to speed up, more to slow down. (Default: 1)
+	-c   Number of colours in palette. (Default: 32)
+	-d   Duration in seconds. (Default: all)
+	-f   Override all filters with specified ffmpeg filters.
+	-h   Show this help screen.
+	-m   Append specified ffmpeg filters.
+	-n   Dry run. Don't write to any file.
+	-o   Crop image (out_w:out_h:x:y). (Default: no crop)
+	-r   Number of frames per second (FPS). (Default: 10)
+	-s   Start time in seconds. (Default: 0)
+	-t   Image height of output. (Default: -1, keeping ratio with width)
+	-v   Make console output verbose.
+	-w   Image width of output. (Default: 720)
 ```
 
