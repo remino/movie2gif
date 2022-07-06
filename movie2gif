@@ -1,77 +1,55 @@
 #!/bin/sh
 # movie2gif
-# Convert video file into GIF or get info about the file.
+# Convert a video file into an animated GIF file.
 
-movie2gif() {
-  _init
+movie2gif_main() {
+	scriptpath="` realpath "$0" `"  
+	scriptname="` basename "$scriptpath" `"
+	scriptdir="` dirname "$scriptpath" `"
+
+	e_args=16
+  e_file=17
+
+  DRYRUN=0
+  VERBOSE=0
 
   OPTIND=
 
-  while getopts "nv" OPTION
+  while getopts "a:c:d:f:hm:no:p:r:s:t:vw:" opt
   do
-    case "$OPTION" in
-      n) DRYRUN=1 ;;
-      v) VERBOSE=1 ;;
-    esac
-  done
-
-  shift `expr $OPTIND - 1`
-
-  [ $# -lt 1 ] && "${SCRIPT_NAME}_help" && return $ERR_ARG
-
-  ACTION="$1"
-  shift
-
-  _is_verbose && _echo "Verbose mode on."
-
-  case "$ACTION" in
-    clone|help) "${SCRIPT_NAME}_$ACTION" "$@" ;;
-
-    convert|edit|file|path)
-      "${SCRIPT_NAME}_run_clone" $ACTION "$@"
-      "${SCRIPT_NAME}_$ACTION" "$@"
-      ;;
-
-    usage) "$SCRIPT_NAME" help "$@" ;;
-    *) "${SCRIPT_NAME}_invalid" && return $ERR_ARG ;;
-  esac
-}
-
-movie2gif_clone() {
-  OUTPUT_DIR="$1"
-  shift
-
-  [ -z "$OUTPUT_DIR" ] && OUTPUT_DIR="$PWD"
-
-  [ "$SCRIPT_DIR" == "$OUTPUT_DIR" ] && return
-
-  if _file_absent "$OUTPUT_DIR/$SCRIPT_NAME"
-  then
-    _echo "$SCRIPT_DIR/$SCRIPT_NAME => $OUTPUT_DIR/$SCRIPT_NAME"
-    cp "$SCRIPT_DIR/$SCRIPT_NAME" "$OUTPUT_DIR/$SCRIPT_NAME"
-  fi
-}
-
-movie2gif_convert() {
-  OPTIND=
-
-  while getopts "a:c:d:f:h:m:o:p:r:s:w:" OPTION
-  do
-    case "$OPTION" in
+    case "$opt" in
       a) scale="$OPTARG" ;;
       c) colors="$OPTARG" ;;
       d) duration="$OPTARG" ;;
       f) filters="$OPTARG" ;;
-      h) height="$OPTARG" ;;
+			h) movie2gif_usage && return ;;
       m) more="$OPTARG" ;;
+      n) DRYRUN=1 ;;
       o) crop="$OPTARG" ;;
       p) palette="$OPTARG" ;;
       r) fps="$OPTARG" ;;
       s) start="$OPTARG" ;;
+      t) height="$OPTARG" ;;
+      v) VERBOSE=1 ;;
       w) width="$OPTARG" ;;
+			*) _invalid_opt ;;
     esac
   done
 
+	shift ` expr $OPTIND - 1 `
+
+	[ -z "$cmd" ] && cmd="convert"
+
+	case "$cmd" in
+		convert) "movie2gif_$cmd" "$@" ;;
+		help|usage) movie2gif_usage ;;
+		*) _invalid_cmd ;;
+	esac
+
+	return $?
+}
+
+movie2gif_convert() {
   shift `expr $OPTIND - 1`
 
   [ -z "$colors" ] && colors=32
@@ -106,7 +84,7 @@ movie2gif_convert() {
   [ -n "$start" ] && _add_prearg "-ss $start"
   [ -n "$duration" ] && _add_prearg "-t $duration"
 
-  [ $# -lt 1 ] && _error "Must set input filename." && return $ERR_ARG
+  [ $# -lt 1 ] && _error "Must set input filename." && return $e_args
 
   input="$1"
   shift
@@ -133,11 +111,11 @@ movie2gif_convert() {
   if _file_absent "$input"
   then
     _error "File not found: $input"
-    return $ERR_FILE
+    return $e_file
   fi
 
   _echo "$input => $output"
-  "${SCRIPT_NAME}_file" "$input"
+  "${scriptname}_file" "$input"
 
   if _is_verbose
   then
@@ -148,13 +126,9 @@ movie2gif_convert() {
 
   _convert
 
-  "${SCRIPT_NAME}_file" "$output"
+  "${scriptname}_file" "$output"
 
   [ $tmppalette -eq 1 ] && rm "$palette"
-}
-
-movie2gif_edit() {
-  "$EDITOR" "$SCRIPT_DIR/$SCRIPT_NAME"
 }
 
 movie2gif_file() {
@@ -195,100 +169,29 @@ movie2gif_file() {
   return $?
 }
 
-movie2gif_help() {
-  action="$ACTION"
-  subject="$1"
-  shift
+movie2gif_usage() {
+cat <<USAGE
+Usage: $scriptname [options] input [output]
 
-  [ -z "$action" ] && action=help
-  [ -z "$subject" ] && subject=all
+Convert a video file into an animated GIF file.
 
-  case "$subject" in
-    all|convert|file) "${SCRIPT_NAME}_${action}_${subject}" "$@" ;;
+Available options:
 
-    *)
-      _error "No help about $subject."
-      _error
+	-a   Time scale. Less than 1 to speed up, more to slow down. (Default: 1)
+	-c   Number of colours in palette. (Default: 32)
+	-d   Duration in seconds. (Default: all)
+	-f   Override all filters with specified ffmpeg filters.
+	-h   Show this help screen.
+	-m   Append specified ffmpeg filters.
+	-n   Dry run. Don't write to any file.
+	-o   Crop image (out_w:out_h:x:y). (Default: no crop)
+	-r   Number of frames per second (FPS). (Default: 10)
+	-s   Start time in seconds. (Default: 0)
+	-t   Image height of output. (Default: -1, keeping ratio with width)
+	-v   Make console output verbose.
+	-w   Image width of output. (Default: 720)
 
-      "${SCRIPT_NAME}_${action}_all" "$@"
-      return $ERR_ARG ;;
-  esac
-}
-
-movie2gif_help_all() {
-  echo "Usage: $SCRIPT_NAME [options] clone|convert|edit|file|help|path"
-  echo
-  echo "Convert video file into GIF or get info about the file."
-  echo
-  echo "clone     Clone script to current or specified directory."
-  echo "convert   Convert movie file into animated GIF file."
-  echo "edit      Edit script with \$EDITOR ($EDITOR)."
-  echo "file      Show info about image or movie file."
-  echo "help      Show this help screen."
-  echo "path      Get path of script file being run."
-  echo
-  echo "-n        Dry run."
-  echo "-v        Verbose output."
-  echo
-}
-
-movie2gif_help_convert() {
-  echo "Usage: $SCRIPT_NAME convert [options] input [output]"
-  echo
-  echo "Convert movie file into animated GIF file."
-  echo
-  echo "input     Input movie file. Required."
-  echo "output    Output GIF file. Optional."
-  echo "          Defaults to movie file name with .gif extension."
-  echo
-  echo "All options below are optional:"
-  echo
-  echo "-a        Time scale. Less than 1 to speed up, more to slow down. (Default: 1)"
-  echo "-c        Number of colours in palette. (Default: 32)"
-  echo "-d        Duration in seconds. (Default: all)"
-  echo "-f        Override all filters with specified ffmpeg filters."
-  echo "-h        Image height of output. (Default: -1, keeping ratio with width)"
-  echo "-m        Append specified ffmpeg filters."
-  echo "-o        Crop image (out_w:out_h:x:y). (Default: no crop)"
-  echo "-r        Number of frames per second (FPS). (Default: 10)"
-  echo "-s        Start time in seconds. (Default: 0)"
-  echo "-w        Image width of output. (Default: 720)"
-  echo
-}
-
-movie2gif_help_file() {
-  echo "Usage: $SCRIPT_NAME file [options] input"
-  echo
-  echo "Show info about image or movie file."
-  echo
-  echo "input     Input image or movie file. Required."
-  echo
-  echo "All options below are optional:"
-  echo
-  echo "-s        Space-separated format: \"filename width height filesize\""
-  echo
-}
-
-movie2gif_invalid() {
-  _error "Invalid action: $ACTION"
-  _error
-
-  "$SCRIPT_NAME" help
-  return 1
-}
-
-movie2gif_path() {
-  _echo "$SCRIPT_DIR/$SCRIPT_NAME"
-}
-
-movie2gif_run_clone() {
-  [ "$SCRIPT_DIR" == "$PWD" ] && return
-  
-  if [ -f "$PWD/$SCRIPT_NAME" ]
-  then
-    "$PWD/$SCRIPT_NAME" "$@"
-    exit $?
-  fi
+USAGE
 }
 
 _add_prearg() {
@@ -334,11 +237,19 @@ _convert() {
 }
 
 _echo() {
-  echo "$@"
+	echo "$@"
 }
 
 _error() {
-  _echo "$@" >&2
+	_echo "$@" >&2
+}
+
+_fatal() {
+	local exit_code
+	exit_code="$1"
+	shift
+	_error "$@"
+	exit "$exit_code"
 }
 
 _file_absent() {
@@ -351,14 +262,18 @@ _file_exists() {
   [ -f "$1" ]
 }
 
-_init() {
-  SCRIPT_NAME="` basename $0 `"
-  SCRIPT_DIR="` dirname $0 `"
-  DRYRUN=0
-  VERBOSE=0
+_invalid_cmd() {
+	_error "Invalid command: $cmd"
+	_echo
+	movie2gif_usage
+	exit $e_args
+}
 
-  ERR_ARG=1
-  ERR_FILE=2
+_invalid_opt() {
+	_error "Invalid option: $opt"
+	_echo
+	movie2gif_usage
+	exit $e_args
 }
 
 _is_dryrun() {
@@ -375,4 +290,4 @@ _run() {
   eval $@
 }
 
-movie2gif "$@"
+movie2gif_main "$@"
