@@ -23,3 +23,14 @@ Available options:
 	-w   Image width of output. (Default: 720)
 ```
 
+## Changelog
+
+### 2022-07-06
+
+The script was refactored:
+
+- Commands `clone`, `edit`, `file`, and `path` were dropped.
+- The `convert` is now the only command available, and now the default.
+- Command no longer needs to be specified.
+- The height `-h` argument was changed to `-t`, to avoid colision with help `-h`.
+
