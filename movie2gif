@@ -21,7 +21,7 @@ movie2gif_main() {
 			c) colors="$OPTARG" ;;
 			d) duration="$OPTARG" ;;
 			f) filters="$OPTARG" ;;
-			h) movie2gif_usage && return ;;
+			h) movie2gif_help && return ;;
 			m) more="$OPTARG" ;;
 			n) DRYRUN=1 ;;
 			o) crop="$OPTARG" ;;
@@ -40,8 +40,7 @@ movie2gif_main() {
 	[ -z "$cmd" ] && cmd="convert"
 
 	case "$cmd" in
-		convert) "movie2gif_$cmd" "$@" ;;
-		help|usage) movie2gif_usage ;;
+		convert|help) "movie2gif_$cmd" "$@" ;;
 		*) _invalid_cmd ;;
 	esac
 
@@ -169,8 +168,8 @@ movie2gif_file() {
 	return $?
 }
 
-movie2gif_usage() {
-cat <<USAGE
+movie2gif_help() {
+cat <<HELP
 USAGE: $scriptname [<options>] <input> [<output>]
 
 Convert a video file into an animated GIF file.
@@ -191,7 +190,7 @@ OPTIONS:
 	-v   Make console output verbose.
 	-w   Image width of output. (Default: 720)
 
-USAGE
+HELP
 }
 
 _add_prearg() {
@@ -264,14 +263,14 @@ _file_exists() {
 _invalid_cmd() {
 	_error "Invalid command: $cmd"
 	_echo
-	movie2gif_usage
+	movie2gif_help
 	exit $e_args
 }
 
 _invalid_opt() {
 	_error "Invalid option: $opt"
 	_echo
-	movie2gif_usage
+	movie2gif_help
 	exit $e_args
 }
 
