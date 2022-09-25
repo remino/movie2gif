@@ -171,11 +171,11 @@ movie2gif_file() {
 
 movie2gif_usage() {
 cat <<USAGE
-Usage: $scriptname [options] input [output]
+USAGE: $scriptname [<options>] <input> [<output>]
 
 Convert a video file into an animated GIF file.
 
-Available options:
+OPTIONS:
 
 	-a   Time scale. Less than 1 to speed up, more to slow down. (Default: 1)
 	-c   Number of colours in palette. (Default: 32)
