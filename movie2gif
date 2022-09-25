@@ -14,7 +14,7 @@ movie2gif_main() {
 
 	OPTIND=
 
-	while getopts "a:c:d:f:hm:no:p:r:s:t:vw:" opt
+	while getopts "a:c:d:f:hm:no:p:r:s:t:Vw:" opt
 	do
 		case "$opt" in
 			a) scale="$OPTARG" ;;
@@ -29,7 +29,7 @@ movie2gif_main() {
 			r) fps="$OPTARG" ;;
 			s) start="$OPTARG" ;;
 			t) height="$OPTARG" ;;
-			v) VERBOSE=1 ;;
+			V) VERBOSE=1 ;;
 			w) width="$OPTARG" ;;
 			*) _invalid_opt ;;
 		esac
@@ -187,7 +187,7 @@ OPTIONS:
 	-r   Number of frames per second (FPS). (Default: 10)
 	-s   Start time in seconds. (Default: 0)
 	-t   Image height of output. (Default: -1, keeping ratio with width)
-	-v   Make console output verbose.
+	-V   Make console output verbose.
 	-w   Image width of output. (Default: 720)
 
 HELP
