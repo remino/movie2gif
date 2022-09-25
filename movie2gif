@@ -7,33 +7,33 @@ movie2gif_main() {
 	scriptname="$( basename "$scriptpath" )"
 
 	e_args=16
-  e_file=17
+	e_file=17
 
-  DRYRUN=0
-  VERBOSE=0
+	DRYRUN=0
+	VERBOSE=0
 
-  OPTIND=
+	OPTIND=
 
-  while getopts "a:c:d:f:hm:no:p:r:s:t:vw:" opt
-  do
-    case "$opt" in
-      a) scale="$OPTARG" ;;
-      c) colors="$OPTARG" ;;
-      d) duration="$OPTARG" ;;
-      f) filters="$OPTARG" ;;
+	while getopts "a:c:d:f:hm:no:p:r:s:t:vw:" opt
+	do
+		case "$opt" in
+			a) scale="$OPTARG" ;;
+			c) colors="$OPTARG" ;;
+			d) duration="$OPTARG" ;;
+			f) filters="$OPTARG" ;;
 			h) movie2gif_usage && return ;;
-      m) more="$OPTARG" ;;
-      n) DRYRUN=1 ;;
-      o) crop="$OPTARG" ;;
-      p) palette="$OPTARG" ;;
-      r) fps="$OPTARG" ;;
-      s) start="$OPTARG" ;;
-      t) height="$OPTARG" ;;
-      v) VERBOSE=1 ;;
-      w) width="$OPTARG" ;;
+			m) more="$OPTARG" ;;
+			n) DRYRUN=1 ;;
+			o) crop="$OPTARG" ;;
+			p) palette="$OPTARG" ;;
+			r) fps="$OPTARG" ;;
+			s) start="$OPTARG" ;;
+			t) height="$OPTARG" ;;
+			v) VERBOSE=1 ;;
+			w) width="$OPTARG" ;;
 			*) _invalid_opt ;;
-    esac
-  done
+		esac
+	done
 
 	shift "$(( OPTIND - 1 ))"
 
@@ -49,124 +49,124 @@ movie2gif_main() {
 }
 
 movie2gif_convert() {
-  shift "$(( OPTIND - 1 ))"
+	shift "$(( OPTIND - 1 ))"
 
-  [ -z "$colors" ] && colors=32
-  [ -z "$fps" ] && fps=10
-  [ -z "$height" ] && height=-1
-  [ -z "$width" ] && width=720
+	[ -z "$colors" ] && colors=32
+	[ -z "$fps" ] && fps=10
+	[ -z "$height" ] && height=-1
+	[ -z "$width" ] && width=720
 
-  args=
-  preargs=
+	args=
+	preargs=
 
-  if _is_verbose
-  then
-    _add_prearg '-loglevel info'
-  else
-    _add_prearg '-hide_banner'
-    _add_prearg '-nostats'
-    _add_prearg '-loglevel fatal'
-  fi
+	if _is_verbose
+	then
+		_add_prearg '-loglevel info'
+	else
+		_add_prearg '-hide_banner'
+		_add_prearg '-nostats'
+		_add_prearg '-loglevel fatal'
+	fi
 
-  if [ -z "$filters" ]
-  then
-    filters=
+	if [ -z "$filters" ]
+	then
+		filters=
 
-    [ -n "$crop" ] && _add_filter "crop=$crop"
-    [ -n "$scale" ] && _add_filter "setpts=$scale*PTS"
+		[ -n "$crop" ] && _add_filter "crop=$crop"
+		[ -n "$scale" ] && _add_filter "setpts=$scale*PTS"
 
-    _add_filter "fps=$fps,scale=$width:$height:flags=lanczos"
+		_add_filter "fps=$fps,scale=$width:$height:flags=lanczos"
 
-    [ -n "$more" ] && _add_filter "$more"
-  fi
+		[ -n "$more" ] && _add_filter "$more"
+	fi
 
-  [ -n "$start" ] && _add_prearg "-ss $start"
-  [ -n "$duration" ] && _add_prearg "-t $duration"
+	[ -n "$start" ] && _add_prearg "-ss $start"
+	[ -n "$duration" ] && _add_prearg "-t $duration"
 
-  [ $# -lt 1 ] && _error "Must set input filename." && return $e_args
+	[ $# -lt 1 ] && _error "Must set input filename." && return $e_args
 
-  input="$1"
-  shift
+	input="$1"
+	shift
 
-  output="$1"
-  shift
+	output="$1"
+	shift
 
-  args="$args $*"
-  
-  medial="$input"
+	args="$args $*"
+	
+	medial="$input"
 
-  if [ -z "$palette" ]
-  then
-    template="$( mktemp "$medial-palette-$colors.XXXXXX" )"
-    rm "$template"
-    palette="$( mktemp "$template.png" )"
-    tmppalette=1
-  else
-    tmppalette=0
-  fi
+	if [ -z "$palette" ]
+	then
+		template="$( mktemp "$medial-palette-$colors.XXXXXX" )"
+		rm "$template"
+		palette="$( mktemp "$template.png" )"
+		tmppalette=1
+	else
+		tmppalette=0
+	fi
 
-  [ -z "$output" ] && output="$( echo "$input" | sed 's/\.[^\.]*$//g' ).gif"
+	[ -z "$output" ] && output="$( echo "$input" | sed 's/\.[^\.]*$//g' ).gif"
 
-  if _file_absent "$input"
-  then
-    _error "File not found: $input"
-    return $e_file
-  fi
+	if _file_absent "$input"
+	then
+		_error "File not found: $input"
+		return $e_file
+	fi
 
-  _echo "$input => $output"
-  "${scriptname}_file" "$input"
+	_echo "$input => $output"
+	"${scriptname}_file" "$input"
 
-  if _is_verbose
-  then
-    _echo "ffmpeg filters: $filters"
-    _echo "ffmpeg preargs: $preargs"
-    _echo "ffmpeg args: $args"
-  fi
+	if _is_verbose
+	then
+		_echo "ffmpeg filters: $filters"
+		_echo "ffmpeg preargs: $preargs"
+		_echo "ffmpeg args: $args"
+	fi
 
-  _convert
+	_convert
 
-  "${scriptname}_file" "$output"
+	"${scriptname}_file" "$output"
 
-  [ $tmppalette -eq 1 ] && rm "$palette"
+	[ $tmppalette -eq 1 ] && rm "$palette"
 }
 
 movie2gif_file() {
-  OPTIND=
+	OPTIND=
 
-  while getopts "s" OPTION
-  do
-    case "$OPTION" in
-      s) format='%f %W %H %b' ;;
-      *) _invalid_opt "$OPTION" ;;
-    esac
-  done
+	while getopts "s" OPTION
+	do
+		case "$OPTION" in
+			s) format='%f %W %H %b' ;;
+			*) _invalid_opt "$OPTION" ;;
+		esac
+	done
 
-  shift $(( OPTIND - 1 ))
+	shift $(( OPTIND - 1 ))
 
-  [ -z "$format" ] && format='%f: %Wx%Hpx (%b)'
+	[ -z "$format" ] && format='%f: %Wx%Hpx (%b)'
 
-  [ $# -lt 1 ] && _error "Must set input filename." && return "$ERR_ARG"
+	[ $# -lt 1 ] && _error "Must set input filename." && return "$ERR_ARG"
 
-  format="$format\n"
-  input="$1"
-  shift
+	format="$format\n"
+	input="$1"
+	shift
 
-  if _file_absent "$input"
-  then
-    _error "File not found: $input"
-    return "$ERR_FILE"
-  fi
+	if _file_absent "$input"
+	then
+		_error "File not found: $input"
+		return "$ERR_FILE"
+	fi
 
-  identify -format "$format" "$input"[0] 2>/dev/null
+	identify -format "$format" "$input"[0] 2>/dev/null
 
-  result=$?
+	result=$?
 
-  if [ $result -gt 0 ]
-  then
-    _error "Not an image or not a format ImageMagick can recognise."
-  fi
+	if [ $result -gt 0 ]
+	then
+		_error "Not an image or not a format ImageMagick can recognise."
+	fi
 
-  return $?
+	return $?
 }
 
 movie2gif_usage() {
@@ -195,45 +195,45 @@ USAGE
 }
 
 _add_prearg() {
-  [ -n "$preargs" ] && preargs="$preargs "
-  preargs="${preargs}$*"
+	[ -n "$preargs" ] && preargs="$preargs "
+	preargs="${preargs}$*"
 }
 
 _add_arg() {
-  [ -n "$args" ] && args="$args "
-  args="${args}$*"
+	[ -n "$args" ] && args="$args "
+	args="${args}$*"
 }
 
 _add_filter() {
-  [ -n "$filters" ] && filters="$filters,"
-  filters="${filters}$*"
+	[ -n "$filters" ] && filters="$filters,"
+	filters="${filters}$*"
 }
 
 _check_palette() {
-  _file_exists "$palette" && return
+	_file_exists "$palette" && return
 
-  _error "Palette file not found: $palette"
-  return "$ERR_FILE"
+	_error "Palette file not found: $palette"
+	return "$ERR_FILE"
 }
 
 _convert() {
-  # http://blog.pkh.me/p/21-high-quality-gif-with-ffmpeg.html
+	# http://blog.pkh.me/p/21-high-quality-gif-with-ffmpeg.html
 
-  if [ $tmppalette -eq 1 ] || ! _file_exists "$palette"
-  then
-    _run "ffmpeg $preargs -i \"$input\" -vf \"$filters,palettegen\"" \
-      "-y $args \"$palette\""
-  fi
+	if [ $tmppalette -eq 1 ] || ! _file_exists "$palette"
+	then
+		_run "ffmpeg $preargs -i \"$input\" -vf \"$filters,palettegen\"" \
+			"-y $args \"$palette\""
+	fi
 
-  _check_palette || return $?
+	_check_palette || return $?
 
-  _run "mogrify +dither -colors $colors \"$palette\""
+	_run "mogrify +dither -colors $colors \"$palette\""
 
-  _run "ffmpeg $preargs -i \"$medial\" -i \"$palette\"" \
-    "-lavfi \"$filters [x]; [x][1:v] paletteuse\" -y $args \"$output\""
+	_run "ffmpeg $preargs -i \"$medial\" -i \"$palette\"" \
+		"-lavfi \"$filters [x]; [x][1:v] paletteuse\" -y $args \"$output\""
 
-  image_optim="$( which image_optim 2>/dev/null )"
-  [ -n "$image_optim" ] && $image_optim "$output" 1>/dev/null 2>&1
+	image_optim="$( which image_optim 2>/dev/null )"
+	[ -n "$image_optim" ] && $image_optim "$output" 1>/dev/null 2>&1
 }
 
 _echo() {
@@ -252,13 +252,13 @@ _fatal() {
 }
 
 _file_absent() {
-  _is_dryrun && return 1
-  [ ! -f "$1" ]
+	_is_dryrun && return 1
+	[ ! -f "$1" ]
 }
 
 _file_exists() {
-  _is_dryrun && return
-  [ -f "$1" ]
+	_is_dryrun && return
+	[ -f "$1" ]
 }
 
 _invalid_cmd() {
@@ -276,17 +276,17 @@ _invalid_opt() {
 }
 
 _is_dryrun() {
-  [ $DRYRUN -gt 0 ]
+	[ $DRYRUN -gt 0 ]
 }
 
 _is_verbose() {
-  [ $VERBOSE -gt 0 ]
+	[ $VERBOSE -gt 0 ]
 }
 
 _run() {
-  _is_verbose && _echo "> $*"
-  _is_dryrun && return
-  "$@"
+	_is_verbose && _echo "> $*"
+	_is_dryrun && return
+	"$@"
 }
 
 movie2gif_main "$@"
