@@ -2,6 +2,8 @@
 # movie2gif
 # Convert a video file into an animated GIF file.
 
+VERSION='0.9.0'
+
 movie2gif_main() {
 	scriptpath="$( realpath "$0" )"
 	scriptname="$( basename "$scriptpath" )"
@@ -14,7 +16,7 @@ movie2gif_main() {
 
 	OPTIND=
 
-	while getopts "a:c:d:f:hm:no:p:r:s:t:Vw:" opt
+	while getopts "a:c:d:f:hm:no:p:r:s:t:vVw:" opt
 	do
 		case "$opt" in
 			a) scale="$OPTARG" ;;
@@ -29,6 +31,7 @@ movie2gif_main() {
 			r) fps="$OPTARG" ;;
 			s) start="$OPTARG" ;;
 			t) height="$OPTARG" ;;
+			v) movie2gif_version && return ;;
 			V) VERBOSE=1 ;;
 			w) width="$OPTARG" ;;
 			*) _invalid_opt ;;
@@ -170,6 +173,8 @@ movie2gif_file() {
 
 movie2gif_help() {
 cat <<HELP
+$scriptname $VERSION
+
 USAGE: $scriptname [<options>] <input> [<output>]
 
 Convert a video file into an animated GIF file.
@@ -187,10 +192,15 @@ OPTIONS:
 	-r   Number of frames per second (FPS). (Default: 10)
 	-s   Start time in seconds. (Default: 0)
 	-t   Image height of output. (Default: -1, keeping ratio with width)
+	-v   Show version.
 	-V   Make console output verbose.
 	-w   Image width of output. (Default: 720)
 
 HELP
+}
+
+movie2gif_version() {
+	echo "$scriptname $VERSION"
 }
 
 _add_prearg() {
