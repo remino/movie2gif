@@ -228,7 +228,7 @@ _check_palette() {
 _convert() {
 	# http://blog.pkh.me/p/21-high-quality-gif-with-ffmpeg.html
 
-	if [ $tmppalette -eq 1 ] || ! _file_exists "$palette"
+	if [ "$tmppalette" -eq 1 ] || ! _file_exists "$palette"
 	then
 		_run "ffmpeg $preargs -i \"$input\" -vf \"$filters,palettegen\"" \
 			"-y $args \"$palette\""
@@ -295,7 +295,7 @@ _is_verbose() {
 _run() {
 	_is_verbose && _echo "> $*"
 	_is_dryrun && return
-	"$@"
+	eval "$*"
 }
 
 movie2gif_main "$@"
