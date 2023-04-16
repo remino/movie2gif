@@ -2,7 +2,7 @@
 # movie2gif
 # Convert a video file into an animated GIF file.
 
-VERSION='1.0.0'
+VERSION='1.0.1'
 
 movie2gif_main() {
 	scriptpath="$( realpath "$0" )"
